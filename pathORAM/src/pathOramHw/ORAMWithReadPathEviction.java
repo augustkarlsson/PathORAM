@@ -42,7 +42,16 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 
 	@Override
 	public byte[] access(Operation op, int blockIndex, byte[] newdata) {
-		// TODO Must complete this method for submission
+		Switch (op) {
+			case READ :
+				res = storage.ReadBucket(blockIndex)
+				return res;
+			case WRITE :
+				
+				return null;
+			default :
+				break;
+		}
 		
 		return null;
 	}
@@ -57,49 +66,42 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 
 	@Override
 	public int[] getPositionMap() {
-		// TODO Must complete this method for submission
-		return null;
+		return this.position_map;
 	}
 
 
 	@Override
 	public ArrayList<Block> getStash() {
-		// TODO Must complete this method for submission
-		return null;
+		return this.stash;
 	}
 
 
 	@Override
 	public int getStashSize() {
-		// TODO Must complete this method for submission
-		return 0;
+		return this.stash.size();
 	}
 
 	@Override
 	public int getNumLeaves() {
-		// TODO Must complete this method for submission
-		return 0;
+		return this.num_leaves;
 	}
 
 
 	@Override
 	public int getNumLevels() {
-		// TODO Must complete this method for submission
-		return 0;
+		return this.num_levels;
 	}
 
 
 	@Override
 	public int getNumBlocks() {
-		// TODO Must complete this method for submission
-		return 0;
+		return this.num_blocks;
 	}
 
 
 	@Override
 	public int getNumBuckets() {
-		// TODO Must complete this method for submission
-		return 0;
+		return this.num_buckets;
 	}
 
 
