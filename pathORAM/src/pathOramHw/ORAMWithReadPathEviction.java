@@ -57,10 +57,21 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 	}
 
 	private int find_num_leaves() {
-		int last_leaves = this.num_buckets - (this.num_levels -1) ;
+		/*
+		 * ex : 01234567
+					0           num_levels = 4  | num_buckets = 9
+				  /   \         last_leaves = 2 = 9 - 7 = 9 - 8 + 1
+				 1     2                    = num_buckets - 2^(num_levels-1) + 1
+			    / \   / \
+			   3   4 5   6		nodes_secondLast_level = 4 - 1 = 4 - 2/2 = 2^(num_levels-1) - 2^(num_levels-2)
+			  / \               secondLast_leaves = 4 - 2 = 4 - 2/2 
+			 7   8								  = nodes_secondLast_level - ceiling(last_leaves/2)
+											/!\ ceiling is to not have issue when one leaf does not have siblings /!\
+		 */
+		int last_leaves = this.num_buckets - Math.pow(2,this.num_levels-1) + 1 ;
 		int secondLast_leaves = 0;
 		if (this.num_buckets != Math.pow(2,this.num_levels)) {
-			int nodes_secondLast_level = Math.pow(2,this.num_levels-1)-1-Math.pow(2,this.num_levels-2)-1 ;
+			int nodes_secondLast_level = Math.pow(2,this.num_levels-1)-Math.pow(2,this.num_levels-2) ;
 			secondLast_leaves = nodes_secondLast_level - Math.ceil(last_leaves/2) ;
 		}
 		return last_leaves + secondLast_leaves ;
@@ -96,15 +107,28 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 			 * What need to be done :
 			 *	- create a map between bucket tree format (for us) and List format (in untrusted storage)
 			 *	- output the result of this map
-			 * ex : 123456789
-			 			1
+			 * ex : 012345678
+			 			0
 					  /   \
-					 2     3
+					 1     2        ==> parent of leave = Math.floor((leave-1)/2)
 					/ \   / \
-				   4   5 6   7
-				   8   9
+				   3   4 5   6
+				  / \
+				 7   8
 			 */
-		return 0;
+		int current_level;
+		if (leaf < Math.pow(2,this.num_levels)) {
+			current_level = this.num_levels -1
+		} else {
+			current_level = this.num_level
+		}
+
+		int index = leaf;
+		while (current_level > level) {
+			index = Math.floor((current_level-1)/2)
+		}
+
+		return index;
 	}
 
 
