@@ -52,13 +52,14 @@ public class Bucket{
 	//Implement and add your own methods.
 	Block getBlockByKey(int key){
 		// TODO Must complete this method for submission
+		//return by reference.
 		return content.get(key);
 		//return null;
 	}
 	
 	void addBlock(Block new_blk){
 		// TODO Must complete this method for submission
-		content.add(new_blk);
+		content.add(new Block(new_blk));
 		real_size++;
 	}
 	
@@ -76,6 +77,7 @@ public class Bucket{
 	
 	ArrayList<Block> getBlocks(){
 		// TODO Must complete this method for submission
+		// return is pass by reference
 		return content;
 	}
 	
