@@ -69,13 +69,18 @@ public class Bucket{
 	
 	boolean removeBlock(Block rm_blk)
 	{
-		// TODO Must complete this method for submission
-		if (content.remove(rm_blk)) {
-			real_size--;
-			return true;
-		} else {
-			return false;
+		int index = 0;
+		for (Block b: content) {
+			if (b.index == rm_blk.index) {
+				content.remove(index);
+				real_size--;
+				return true;
+			}
+			index++;
 		}
+		return false;
+		// TODO Must complete this method for submission
+	
 	}
 	
 	
