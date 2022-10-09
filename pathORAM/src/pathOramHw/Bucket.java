@@ -53,7 +53,11 @@ public class Bucket{
 	Block getBlockByKey(int key){
 		// TODO Must complete this method for submission
 		//return by reference.
-		return content.get(key);
+		for (Block b: content) {
+			if (b.index == key)
+				return b;
+		}
+		return null;
 		//return null;
 	}
 	
