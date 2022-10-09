@@ -47,7 +47,12 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 				res = storage.ReadBucket(blockIndex)
 				return res;
 			case WRITE :
-				
+				/*
+				 * What need to be done :
+				 *	- [understanding] create a map between bucket tree format (for us) and List format (in untrusted storage).
+				 *		| Also needed for function right below
+				 *	- [execution] need to implement algorithm from slides page 51 to 54
+				 */
 				return null;
 			default :
 				break;
@@ -60,6 +65,11 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 	@Override
 	public int P(int leaf, int level) {
 		// TODO Must complete this method for submission
+			/*
+			 * What need to be done :
+			 *	- create a map between bucket tree format (for us) and List format (in untrusted storage)
+			 *	- output the result of this map
+			 */
 		return 0;
 	}
 
