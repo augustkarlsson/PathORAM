@@ -39,6 +39,8 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		this.num_buckets = num_blocks/bucket_size; // 4 blocks by buckets, need to be able to fit everythin
 		this.num_levels = this.find_num_levels() 
 		(this.num_leaves, this.lowest_leave) = this.find_num_leaves()
+		this.rand_gen.setBound(this.num_leaves)
+
 		this.position_map = this.init_map()
 		Bucket.setMaxSize(bucket_size);
 		Bucket.resetState();
