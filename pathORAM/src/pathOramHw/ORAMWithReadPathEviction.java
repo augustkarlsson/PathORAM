@@ -80,7 +80,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		if (this.num_buckets != Math.pow(2,this.num_levels)) {
 			int nodes_secondLast_level = Math.pow(2,this.num_levels-1)-Math.pow(2,this.num_levels-2) ;
 			secondLast_leaves = nodes_secondLast_level - Math.ceil(last_leaves/2) ;
-			lowest_leave = Math.pow(2,this.num_levels-1) -1 - secondLast_leaves
+			lowest_leave = Math.pow(2,this.num_levels-1) - secondLast_leaves // lowest leave = lowest leave of Last_level - leaves on secondLast_level
 		}
 		return (last_leaves + secondLast_leaves, lowest_leave) ;
 	}
@@ -151,6 +151,10 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 				  / \
 				 7   8
 			 */
+		if (leaf > this.num_leaves) {
+			throw new RuntimeException("[INVALID PARAM 'LEAF'] : should be between 0 (INCLUSIVE) and num_leaves (EXCLUSIVE)");
+		}
+		leaf += this.lowest_leave
 		int current_level;
 		if (leaf < Math.pow(2,this.num_levels)) {
 			current_level = this.num_levels -1
