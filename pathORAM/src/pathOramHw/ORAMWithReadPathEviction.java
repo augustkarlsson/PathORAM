@@ -111,7 +111,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		// REMAP BLOCK
 
 		byte[] res = new byte[newdata.length];
-		int x = this.lowest_leave + position_map[blockIndex -1]; // indice starts from 0, not 1
+		int x = this.lowest_leave + position_map[blockIndex]; // indice starts from 0, not 1
 		position_map[blockIndex] = rand_gen.getRandomLeaf();
 
 		// READ PATH, i.e copy every block on every level to stash S
