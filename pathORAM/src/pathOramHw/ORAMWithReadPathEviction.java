@@ -86,10 +86,8 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 			case WRITE :
 				/*
 				 * What need to be done :
-				 *	- [understanding] create a map between bucket tree format (for us) and List format (in untrusted storage).
-				 *		| Also needed for function right below
 				 *	- [execution] need to implement algorithm from slides page 51 to 54
-				 *  - 
+				 *  - also need to add creation of new buckets ?
 				 */
 				return null;
 			default :
