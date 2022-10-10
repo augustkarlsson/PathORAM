@@ -15,9 +15,9 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 	private UntrustedStorageInterface storage;
 	private RandForORAMInterface rand_gen;
 
-	private ArrayList<Block> stash;
+	private ArrayList<Block> stash; // looks like it allocates memory dynamically
 	private int[] position_map;
-	private int num_buckets;// Need to be greater or equal to 30.000/4 = 7500 (to feat all write operations)
+	private int num_buckets;
 	private int num_blocks;
 	private int num_levels;
 	private int num_leaves;
@@ -26,7 +26,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 	/*
 	 * Student defined variables
 	 */
-	
+	private in lowest_leave; // wanted_leave = lowest_leave + rand_gen.getRandomLeaf()
 
 
 	public ORAMWithReadPathEviction(UntrustedStorageInterface storage, RandForORAMInterface rand_gen, int bucket_size, int num_blocks){
@@ -36,10 +36,10 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		this.bucket_size= bucket_size;
 		this.num_blocks = num_blocks;
 
-		this.num_buckets = 8000;
+		this.num_buckets = num_blocks/bucket_size; // 4 blocks by buckets, need to be able to fit everythin
 		this.num_levels = this.find_num_levels() 
-		this.num_leaves = this.find_num_leaves()
-
+		(this.num_leaves, this.lowest_leave) = this.find_num_leaves()
+		this.position_map = this.init_map()
 		Bucket.setMaxSize(bucket_size);
 		Bucket.resetState();
 
@@ -60,7 +60,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 	
 	}
 
-	private int find_num_leaves() {
+	private (int,int) find_num_leaves() {
 		/*
 		 * ex : 01234567
 					0           num_levels = 4  | num_buckets = 9
@@ -74,11 +74,20 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		 */
 		int last_leaves = this.num_buckets - Math.pow(2,this.num_levels-1) + 1 ;
 		int secondLast_leaves = 0;
+		int lowest_leave = 0;
 		if (this.num_buckets != Math.pow(2,this.num_levels)) {
 			int nodes_secondLast_level = Math.pow(2,this.num_levels-1)-Math.pow(2,this.num_levels-2) ;
 			secondLast_leaves = nodes_secondLast_level - Math.ceil(last_leaves/2) ;
+			lowest_leave = Math.pow(2,this.num_levels-1) -1 - secondLast_leaves
 		}
-		return last_leaves + secondLast_leaves ;
+		return (last_leaves + secondLast_leaves, lowest_leave) ;
+	}
+
+	private init_map(){
+		int[] map = new int[this.num_blocks] // need to keep record of position for every possible doc
+		for (int i = 0; i < this.num_blocks; i++) {
+			map[i] = this.num_leaves-1;
+		}
 	}
 
 	@Override
@@ -100,8 +109,9 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		// 		break;
 		// }
 		// REMAP BLOCK
+
 		byte[] res = new byte[newdata.length];
-		int x = position_map[blockIndex];
+		int x = this.lowest_leave + position_map[blockIndex -1]; // indice starts from 0, not 1
 		position_map[blockIndex] = rand_gen.getRandomLeaf();
 
 		// READ PATH, i.e copy every block on every level to stash S
