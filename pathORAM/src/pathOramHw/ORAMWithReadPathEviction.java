@@ -118,9 +118,6 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		byte[] res = new byte[newdata.length] ;
 		res = newdata;
 		
-		System.out.println("lowest leave" + this.lowest_leave);
-		System.out.println("position map" + position_map[blockIndex]);
-
 		int x =  position_map[blockIndex]; // indice starts from 0, not 1
 		position_map[blockIndex] = rand_gen.getRandomLeaf();
 
@@ -128,13 +125,22 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		// Traversing the path P with all values of L (levels)
 		for (int level = 0; level < num_levels; ++level)
 		{
-			ArrayList<Block> all_blocks = storage.ReadBucket(P(x,level)).getBlocks();
-			for (Block block : all_blocks)
-				if (block.index != -1)
+			System.out.println("hej");
+			ArrayList<Block> all_blocks = new ArrayList<Block>();
+			int pxl = P(x,level);
+			Bucket bucket = storage.ReadBucket(pxl);
+			all_blocks= bucket.getBlocks();
+			System.out.println("hej3");
+			for (Block block : all_blocks){
+				if (block.index != -1){
 					stash.add(block);
+				}
+			}
+					
 		}
-
 		boolean done= false;
+		
+
 		for (int i = 0; i < stash.size() || done ; ++i)
 		{
 			Block b = stash.get(i);
@@ -150,7 +156,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 				done = true;
 			}
 		}
-		
+
 		//WRITE PATH
 		// I think you need to go up the levels, not down
 		// Okay I'll write it out on paper and check!
@@ -209,7 +215,9 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 				  / \
 				 7   8
 			 */
+		System.out.println("test");
 		if (leaf > this.num_leaves) {
+			System.out.println("nu kraschar vi");
 			throw new RuntimeException("[INVALID PARAM 'LEAF'] : should be between 0 (INCLUSIVE) and num_leaves (EXCLUSIVE)");
 		}
 		leaf += this.lowest_leave ;
@@ -222,7 +230,9 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 
 		int index = leaf;
 		while (current_level > level) {
+			System.out.println(current_level);
 			index = (int) Math.floor((current_level-1)/2) ;
+			current_level--;
 		}
 
 		return index;
