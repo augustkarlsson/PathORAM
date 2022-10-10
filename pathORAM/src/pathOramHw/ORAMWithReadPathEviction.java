@@ -48,12 +48,16 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 	}
 
 	private int find_num_levels() {
-		int n = 1;
-		while (this.num_buckets % Math.pow(2,n) >= 2) {
-			// we search n such that 2^n <= nb_buckets < 2^(n+1)
-			n++;
-		}
-		return n+1 ;
+
+		return (int) Math.ceil(Math.log10(num_buckets)/Math.log10(2))+1;
+		
+		//int n = 1;
+		//while (this.num_buckets % Math.pow(2,n) >= 2) {
+		//	// we search n such that 2^n <= nb_buckets < 2^(n+1)
+		//	n++;
+		//}
+		//return n+1 ;
+	
 	}
 
 	private int find_num_leaves() {
@@ -79,21 +83,42 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 
 	@Override
 	public byte[] access(Operation op, int blockIndex, byte[] newdata) {
-		Switch (op) {
-			case READ :
-				res = storage.ReadBucket(blockIndex)
-				return res;
-			case WRITE :
-				/*
-				 * What need to be done :
-				 *	- [execution] need to implement algorithm from slides page 51 to 54
-				 *  - also need to add creation of new buckets ?
-				 */
-				return null;
-			default :
-				break;
+		// Switch (op) {
+		// 	case READ :
+		// 		res = storage.ReadBucket(blockIndex)
+		// 		return res;
+		// 	case WRITE :
+		// 		/*
+		// 		 * What need to be done :
+		// 		 *	- [understanding] create a map between bucket tree format (for us) and List format (in untrusted storage).
+		// 		 *		| Also needed for function right below
+		// 		 *	- [execution] need to implement algorithm from slides page 51 to 54
+		// 		 *  - 
+		// 		 */
+		// 		return null;
+		// 	default :
+		// 		break;
+		// }
+		// REMAP BLOCK
+		byte[] res = new byte[newdata.length];
+		int x = position_map[blockIndex];
+		position_map[blockIndex] = rand_gen.getRandomLeaf();
+
+		// READ PATH, i.e copy every block on every level to stash S
+		// Traversing the path P with all values of L (levels)
+		for (int level = 0; level < num_levels; ++level)
+		{
+			ArrayList<Block> all_blocks = storage.ReadBucket(P(x,level)).getBlocks();
+			for (Block block : all_blocks)
+				if (block.index != -1)
+					stash.add(block);
 		}
-		
+
+		//UPDATE BLOCK, Read block from stash if OP code is WRITE
+		if (op == "WRITE"){
+			stash.remove(blockIndex)
+			//working on
+		}
 		return null;
 	}
 
