@@ -48,12 +48,16 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 	}
 
 	private int find_num_levels() {
-		int n = 1;
-		while (this.num_buckets % Math.pow(2,n) >= 2) {
-			// we search n such that 2^n <= nb_buckets < 2^(n+1)
-			n++;
-		}
-		return n+1 ;
+
+		return (int) Math.ceil(Math.log10(num_buckets)/Math.log10(2))+1;
+		
+		//int n = 1;
+		//while (this.num_buckets % Math.pow(2,n) >= 2) {
+		//	// we search n such that 2^n <= nb_buckets < 2^(n+1)
+		//	n++;
+		//}
+		//return n+1 ;
+	
 	}
 
 	private int find_num_leaves() {
