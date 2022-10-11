@@ -81,7 +81,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 			int nodes_secondLast_level = Math.pow(2,this.num_levels-1)-Math.pow(2,this.num_levels-2) ;
 			secondLast_leaves = nodes_secondLast_level - Math.ceil(last_leaves/2) ;
 			lowest_leave = Math.pow(2,this.num_levels-1) - secondLast_leaves // lowest leave = lowest leave of Last_level - leaves on secondLast_level
-		}
+		}s 
 		return (last_leaves + secondLast_leaves, lowest_leave) ;
 	}
 
