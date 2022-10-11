@@ -87,7 +87,10 @@ public class Bucket{
 	ArrayList<Block> getBlocks(){
 		// TODO Must complete this method for submission
 		// return is pass by reference
-		return content;
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		for (Block b : content)
+			blocks.add(new Block(b));
+		return blocks;
 	}
 	
 	int returnRealSize(){
