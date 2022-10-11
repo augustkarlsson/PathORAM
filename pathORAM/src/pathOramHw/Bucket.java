@@ -3,6 +3,7 @@ package pathOramHw;
 import java.util.ArrayList;
 
 import javax.management.RuntimeErrorException;
+import javax.xml.namespace.QName;
 
 /*
  * Name: Antoine Gansel, August Karlsson
@@ -12,10 +13,7 @@ import javax.management.RuntimeErrorException;
 public class Bucket{
 	private static boolean is_init = false;
 	private static int max_size_Z = -1;
-	
-	//TODO Add necessary variables
 
-	//A
 	private ArrayList<Block> content;
 	private int real_size = 0;
 	
@@ -24,11 +22,9 @@ public class Bucket{
 		{
 			throw new RuntimeException("Please set bucket size before creating a bucket");
 		}
-		//TODO Must complete this method for 
 		content = new ArrayList<Block>();
 	}
 	
-	// Copy constructor
 	Bucket(Bucket other)
 	{
 		if(other == null)
@@ -36,35 +32,27 @@ public class Bucket{
 			throw new RuntimeException("the other bucket is not malloced.");
 		}
 
-
-		//TODO Must complete this method for submission
-
 		content = new ArrayList<Block>(max_size_Z);
 		int i;
-		for (i = 0; i < other.returnRealSize(); ++i) {
-			//Correct way to add new block??
-			content.add(new Block(other.getBlockByKey(i)));
+		for (i = 0; i < max_size_Z; ++i) {
+			content.add(new Block(other.content.get(i)));
 		}
-		//Indices start on 0, hence size is one more
 		real_size = ++i;
 	}
 	
-	//Implement and add your own methods.
 	Block getBlockByKey(int key){
-		// TODO Must complete this method for submission
-		//return by reference.
 		for (Block b: content) {
 			if (b.index == key)
-				return b;
+				return new Block(b);
 		}
 		return null;
-		//return null;
 	}
 	
 	void addBlock(Block new_blk){
-		// TODO Must complete this method for submission
+		if (content.size() < max_size_Z){
 		content.add(new Block(new_blk));
 		real_size++;
+		}
 	}
 	
 	boolean removeBlock(Block rm_blk)
@@ -78,23 +66,22 @@ public class Bucket{
 			}
 			index++;
 		}
-		return false;
-		// TODO Must complete this method for submission
-	
+		return false;	
 	}
 	
 	
 	ArrayList<Block> getBlocks(){
-		// TODO Must complete this method for submission
-		// return is pass by reference
+
 		ArrayList<Block> blocks = new ArrayList<Block>();
-		for (Block b : content)
-			blocks.add(new Block(b));
+		for (Block b : content){
+			if (b.index != -1){
+				blocks.add(new Block(b));
+			}
+		}
 		return blocks;
 	}
 	
 	int returnRealSize(){
-		// TODO Must complete this method for submission
 		return real_size;
 	}
 

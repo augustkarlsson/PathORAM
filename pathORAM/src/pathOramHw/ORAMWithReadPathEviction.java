@@ -30,13 +30,12 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 
 
 	public ORAMWithReadPathEviction(UntrustedStorageInterface storage, RandForORAMInterface rand_gen, int bucket_size, int num_blocks){
-		// TODO complete the constructor
 		this.storage = storage;
 		this.rand_gen = rand_gen;
 		this.bucket_size= bucket_size;
 		this.num_blocks = num_blocks;
 
-		this.num_buckets = num_blocks/bucket_size; // 4 blocks by buckets, need to be able to fit everythin
+		this.num_buckets = (int) Math.ceil(((double) num_blocks)/((double) bucket_size)); // 4 blocks by buckets, need to be able to fit everything
 		this.num_levels = this.find_num_levels();
 		int[] res_num_leaves = this.find_num_leaves();
 		this.num_leaves = res_num_leaves[0];
@@ -45,22 +44,22 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 
 		this.position_map = this.init_map();
 		Bucket.resetState();
-
+		Bucket.setMaxSize(bucket_size);
 		storage.setCapacity(num_buckets); // We set our capacity to the number of buckets we have
 
+		stash = new ArrayList<Block>();
+
+		for (int i = 0; i < num_buckets; i++) {
+			Bucket bucket = new Bucket();
+			for (int j = 0; j < bucket_size; j++) {
+				bucket.addBlock(new Block());
+			}
+			storage.WriteBucket(i, bucket);
+		}
 	}
 
 	private int find_num_levels() {
-
 		return (int) Math.ceil(Math.log10(num_buckets)/Math.log10(2))+1;
-		
-		//int n = 1;
-		//while (this.num_buckets % Math.pow(2,n) >= 2) {
-		//	// we search n such that 2^n <= nb_buckets < 2^(n+1)
-		//	n++;
-		//}
-		//return n+1 ;
-	
 	}
 	
 
@@ -90,33 +89,17 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 	private int[] init_map(){
 		int[] map = new int[this.num_blocks]; // need to keep record of position for every possible doc
 		for (int i = 0; i < this.num_blocks; i++) {
-			map[i] = this.num_leaves-1;
+			map[i] =  rand_gen.getRandomLeaf();//this.num_leaves-1;
 		}
 		return map;
 	}
 
 	@Override
 	public byte[] access(Operation op, int blockIndex, byte[] newdata) {
-		// Switch (op) {
-		// 	case READ :
-		// 		res = storage.ReadBucket(blockIndex)
-		// 		return res;
-		// 	case WRITE :
-		// 		/*
-		// 		 * What need to be done :
-		// 		 *	- [understanding] create a map between bucket tree format (for us) and List format (in untrusted storage).
-		// 		 *		| Also needed for function right below
 		// 		 *	- [execution] need to implement algorithm from slides page 51 to 54
-		// 		 *  - 
-		// 		 */
-		// 		return null;
-		// 	default :
-		// 		break;
-		// }
-		// REMAP BLOCK
+
 
 		byte[] res = new byte[newdata.length] ;
-		res = newdata;
 		
 		int x =  position_map[blockIndex]; // indice starts from 0, not 1
 		position_map[blockIndex] = rand_gen.getRandomLeaf();
@@ -125,17 +108,20 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		// Traversing the path P with all values of L (levels)
 		for (int level = 0; level < num_levels; ++level)
 		{
-			System.out.println("hej");
-			ArrayList<Block> all_blocks = new ArrayList<Block>();
 			int pxl = P(x,level);
 			Bucket bucket = storage.ReadBucket(pxl);
-			all_blocks= bucket.getBlocks();
-			System.out.println("hej3");
-			for (Block block : all_blocks){
-				if (block.index != -1){
-					stash.add(block);
-				}
+			// If bucket is null then it is not in the tree but in the stash
+
+			bucket.getBlocks(); //remove after
+			ArrayList<Block> all_blocks= bucket.getBlocks();
+
+			if (all_blocks != null) {
+				for (Block block : all_blocks){
+					if (block.index != -1) {
+						stash.add(block);
+					}
 			}
+		}
 					
 		}
 		boolean done= false;
@@ -147,19 +133,16 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 			if (b.index == blockIndex) {
 				//UPDATE BLOCK, Read block from stash if OP code is WRITE
 				if (op == Operation.WRITE) {
-					b.data = res;
+					b.data = newdata;
+					stash.add(i, b);
 				}
-				// READ BL 
-				else { // op == Operation.READ
+				// READ if op == Operation.READ
+				else {  
 					res = b.data;
 				}
 				done = true;
 			}
 		}
-
-		//WRITE PATH
-		// I think you need to go up the levels, not down
-		// Okay I'll write it out on paper and check!
 
 		for (int level = num_levels; level > 0; level--) {
 			ArrayList<Integer> to_be_written = new ArrayList<Integer>();
@@ -167,21 +150,21 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 			int path_to_level = P(x, level);
 			int counter = 0;
 			for (Block b: stash) {
-				if (counter >= bucket_size)
-					break;
-				Block to_write = b; 
-				if (path_to_level == P(position_map[to_write.index],level)) {
-					bucket.addBlock(to_write);
-					to_be_written.add(to_write.index);
-					counter++;
+				if (counter < bucket_size) {
+					Block to_write = b; 
+					if (path_to_level == P(position_map[to_write.index],level)) {
+						bucket.addBlock(to_write);
+						to_be_written.add(to_write.index);
+						counter++;
+					}
 				}
-
 			}
 
 			//remove from stash
 			for (int i = 0; i < to_be_written.size(); i++)
 			{
-				for (int j = 0; j < stash.size(); j++) {
+				for (int j = 0; j < stash.size(); j++) 
+				{
 					if (stash.get(j).index == to_be_written.get(i))
 					{
 						stash.remove(j);
@@ -193,9 +176,9 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 				bucket.addBlock(new Block());
 				counter++;
 			}
-			
+			storage.WriteBucket(path_to_level, bucket);
 		}
-		return null;
+		return res;
 	}
 
 
@@ -215,9 +198,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 				  / \
 				 7   8
 			 */
-		System.out.println("test");
 		if (leaf > this.num_leaves) {
-			System.out.println("nu kraschar vi");
 			throw new RuntimeException("[INVALID PARAM 'LEAF'] : should be between 0 (INCLUSIVE) and num_leaves (EXCLUSIVE)");
 		}
 		leaf += this.lowest_leave ;
@@ -230,7 +211,6 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 
 		int index = leaf;
 		while (current_level > level) {
-			System.out.println(current_level);
 			index = (int) Math.floor((current_level-1)/2) ;
 			current_level--;
 		}
@@ -278,7 +258,4 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 	public int getNumBuckets() {
 		return this.num_buckets;
 	}
-
-
-	
 }
