@@ -99,9 +99,95 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		// 		 *	- [execution] need to implement algorithm from slides page 51 to 54
 
 		//System.out.println("newdata is " + newdata + "\n");
+	
+		byte[] res = new byte[newdata.length] ;
+
+		int a = position_map[blockIndex];
+		position_map[blockIndex] = rand_gen.getRandomLeaf();
+		
+
+		/*
+		 * for l in {0,1,...,L}
+		 * 		S <-- S U ReadBucket(P(x,l))
+		 * end for
+		 */
+		for (int level = 1; level < num_levels; level++) {
+			int current = P(a,level);
+			Bucket current_bucket = storage.ReadBucket(current);
+			ArrayList<Block> current_content = current_bucket.getBlocks();
+			if (current_content != null) {
+				for (Block block : current_content) {
+					if (block.index != -1) {
+						stash.add(block);
+					}
+				}
+			}
+		}
+
+		
+		int index_a = -1;
+		for (int i = 0; i < stash.size(); ++i) {
+			Block b = stash.get(i);
+			if (b.index == blockIndex);
+				index_a = i;
+				System.out.println("NEED TO TRANSFORM INTO A COPY LIGN 134");
+				res = b.data; // NEED TO TRANSFORM INTO A COPY
+		}
+		if  (op == Operation.WRITE){
+			if (index_a == -1) {
+				stash.add(new Block(blockIndex, newdata));
+				System.out.println(""+ Arrays.toString(stash.get(stash.size()-1).data));
+			}
+			else {
+				Block b = stash.get(index_a); // you had put this part inside the loop and you were using i
+				for (int i = 0; i < newdata.length; ++i) {
+					b.data[index_a] = newdata[i];
+				}
+				System.out.println(Arrays.toString(stash.get(index_a).data) +"----------------"+Integer.toString(index_a));
+			}
+		}
 
 
+		for (int level = num_levels; level > 0; level--) {
+			ArrayList<Integer> stash_ToWrite = new ArrayList<Integer>();
+			int current = P(a,level);
+			int counter = 0;
+			Bucket bucket = new Bucket();
+			// S′←{(a0,data0) ∈ S : P(x,l) = P(position[a0],l)}
+			// S′←Select min(|S′|,Z) blocks from S′
+			for (Block b: stash) {
+				if (counter < bucket_size) {
+					Block to_write = b; 
+					if (current == P(position_map[to_write.index],level)) {
+						bucket.addBlock(to_write);
+						stash_ToWrite.add(to_write.index);
+						counter++;
+					}
+				}
+			}
 
+			// S ←S −S′
+			for (int i = 0; i < stash_ToWrite.size(); i++)
+			{
+				for (int j = 0; j < stash.size(); j++) 
+				{
+					if (stash.get(j).index == stash_ToWrite.get(i))
+					{
+						stash.remove(j);
+					}
+				}
+			}
+			//WriteBucket(P(x,l),S′)
+			while (counter < bucket_size) {
+				bucket.addBlock(new Block());
+				counter++;
+			}
+			storage.WriteBucket(current, bucket);
+		}
+
+
+		return res;
+	/* 
 		byte[] res = new byte[newdata.length] ;
 		
 		int x =  position_map[blockIndex]; // indice starts from 0, not 1
@@ -113,25 +199,25 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		for (int level = 0; level < num_levels; ++level)
 		{
 			int pxl = P(x,level);
-			System.out.println("int pxl is " + pxl + "\n");
+			//System.out.println("int pxl is " + pxl + "\n");
 			if (pxl >= num_buckets)
 				break;
-			System.out.println("test");
+			//System.out.println("test");
 			Bucket bucket = storage.ReadBucket(pxl);
 			// If bucket is null then it is not in the tree but in the stash
 
-			System.out.println("what does get blocks give " + bucket.getBlocks().size());
+			//System.out.println("what does get blocks give " + bucket.getBlocks().size());
 
 			ArrayList<Block> all_blocks= bucket.getBlocks();
-			System.out.println("all_blocks size are " + all_blocks.size());
+			//System.out.println("all_blocks size are " + all_blocks.size());
 			if (all_blocks != null) {
-				System.out.println("First in all-blocks is "+ Arrays.toString(all_blocks.get(0).data));
+				//System.out.println("First in all-blocks is "+ Arrays.toString(all_blocks.get(0).data));
 				for (Block block : all_blocks) {
 					//System.out.println("Ready to write to stash, the block index is " + block.index);
 					if (block.index != -1) {
 						stash.add(block);
 					}
-					System.out.println("block are nu"+ Arrays.toString(block.data));
+					//System.out.println("block are nu"+ Arrays.toString(block.data));
 				}
 			}
 					
@@ -230,6 +316,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 			storage.WriteBucket(path_to_level, bucket);
 		}
 		return res;
+	*/
 	}
 
 

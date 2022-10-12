@@ -71,14 +71,14 @@ public class Bucket{
 	
 	
 	ArrayList<Block> getBlocks(){
-		return content;
-		// ArrayList<Block> blocks = new ArrayList<Block>();
-		// for (Block b : content){
-		// 	if (b.index != -1){
-		// 		blocks.add(new Block(b));
-		// 	}
-		// }
-		// return blocks;
+		//return content;
+		 ArrayList<Block> b = new ArrayList<Block>(max_size_Z);
+		 int i;
+		 for (i = 0; i < max_size_Z; ++i) {
+			 b.add(new Block(content.get(i)));
+		 }
+		 real_size = ++i;
+		return b;
 	}
 	
 	int returnRealSize(){
