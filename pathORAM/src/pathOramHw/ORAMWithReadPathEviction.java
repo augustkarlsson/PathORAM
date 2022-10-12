@@ -152,9 +152,8 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 				}
 			}
 		}
-		
 
-		
+
 		int index_a = -1;
 		stash_size = stash.size();
 		System.out.println(Integer.toString(stash_size));
