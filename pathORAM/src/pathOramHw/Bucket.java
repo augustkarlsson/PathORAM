@@ -1,6 +1,7 @@
 package pathOramHw;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.management.RuntimeErrorException;
 import javax.xml.namespace.QName;
@@ -50,9 +51,11 @@ public class Bucket{
 	
 	void addBlock(Block new_blk){
 		if (content.size() < max_size_Z){
-		content.add(new Block(new_blk));
-		real_size++;
+			content.add(new Block(new_blk));
+			real_size++;
+			if (new_blk.index != -1) System.out.println(Arrays.toString(content.get(0).data) + " " + Integer.toString(this.returnRealSize()));
 		}
+		else System.out.println("addBlock failed");
 	}
 	
 	boolean removeBlock(Block rm_blk)
@@ -75,6 +78,7 @@ public class Bucket{
 		 ArrayList<Block> b = new ArrayList<Block>(max_size_Z);
 		 int i;
 		 for (i = 0; i < max_size_Z; ++i) {
+			System.out.println(Arrays.toString(content.get(i).data));
 			 b.add(new Block(content.get(i)));
 		 }
 		 real_size = ++i;

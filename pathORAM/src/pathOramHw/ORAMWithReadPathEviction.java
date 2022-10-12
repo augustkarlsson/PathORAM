@@ -26,26 +26,34 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 	/*
 	 * Student defined variables
 	 */
-	private int lowest_leave; // wanted_leave = lowest_leave + rand_gen.getRandomLeaf()
+	//private int lowest_leave; // wanted_leave = lowest_leave + rand_gen.getRandomLeaf()
+	private int stash_size;
 
 
 	public ORAMWithReadPathEviction(UntrustedStorageInterface storage, RandForORAMInterface rand_gen, int bucket_size, int num_blocks){
 		this.storage = storage;
 		this.rand_gen = rand_gen;
+		this.num_levels = (int) (Math.log(num_blocks)/Math.log(2));
+		this.num_leaves = (int) Math.pow(2,num_levels-1);
 		this.bucket_size= bucket_size;
 		this.num_blocks = num_blocks;
-
-		this.num_buckets = (int) Math.ceil(((double) num_blocks)/((double) bucket_size)); // 4 blocks by buckets, need to be able to fit everything
-		this.num_levels = this.find_num_levels();
-		int[] res_num_leaves = this.find_num_leaves();
-		this.num_leaves = res_num_leaves[0];
-		this.lowest_leave = res_num_leaves [1];
+		this.num_buckets = 0;
+		for (int i = 0; i<num_levels; i++) {
+			this.num_buckets = this.num_buckets + (int) Math.pow(2,i);
+		}
+		this.num_blocks = (int) this.num_buckets * this.bucket_size;
+		this.stash_size = -1;
+		//this.num_buckets = (int) Math.ceil(((double) num_blocks)/((double) bucket_size)); // 4 blocks by buckets, need to be able to fit everything
+		//this.num_levels = this.find_num_levels();
+		//int[] res_num_leaves = this.find_num_leaves();
+		//this.num_leaves = res_num_leaves[0];
+		//this.lowest_leave = res_num_leaves [1];
 		this.rand_gen.setBound(this.num_leaves);
 
 		this.position_map = this.init_map();
 		Bucket.resetState();
 		Bucket.setMaxSize(bucket_size);
-		storage.setCapacity(num_buckets); // We set our capacity to the number of buckets we have
+		storage.setCapacity(this.num_buckets); // We set our capacity to the number of buckets we have
 
 		stash = new ArrayList<Block>();
 
@@ -56,25 +64,46 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 			}
 			storage.WriteBucket(i, bucket);
 		}
-	}
 
+	//	if (P(0,1) != 0) throw new RuntimeException("P incorrect 1");
+	//	if (P(0,2) != (int) Math.pow(2,1)-1) throw new RuntimeException("P incorrect 2");
+	//	if (P(0,3) != (int) Math.pow(2,2)-1) throw new RuntimeException("P incorrect 3");
+	//	if (P(0,4) != (int) Math.pow(2,3)-1) throw new RuntimeException("P incorrect 4");
+	//	if (P(0,5) != (int) Math.pow(2,4)-1) throw new RuntimeException("P incorrect 5");
+	//	if (P(0,6) != (int) Math.pow(2,5)-1) throw new RuntimeException("P incorrect 6");
+	//	if (P(0,7) != (int) Math.pow(2,6)-1) throw new RuntimeException("P incorrect 7");
+	//	if (P(0,8) != (int) Math.pow(2,7)-1) throw new RuntimeException("P incorrect 8");
+	//	if (P(0,9) != (int) Math.pow(2,8)-1) throw new RuntimeException("P incorrect 9");
+	//	if (P(0,10) !=(int) Math.pow(2,9)-1) throw new RuntimeException("P incorrect 10");
+	//	if (P(0,11) != (int) Math.pow(2,10)-1) throw new RuntimeException("P incorrect 11");
+	//	if (P(0,12) != (int) Math.pow(2,11)-1) throw new RuntimeException("P incorrect 12");
+	//	if (P(0,13) != (int) Math.pow(2,12)-1) throw new RuntimeException("P incorrect 13");
+	//	if (P(0,14) != (int) Math.pow(2,13)-1) throw new RuntimeException("P incorrect 14");
+	//	if (P(0,15) != (int) Math.pow(2,14)-1) throw new RuntimeException("P incorrect 15");
+	//	if (P(0,16) != (int) Math.pow(2,15)-1) throw new RuntimeException("P incorrect 16");
+	//	if (P(0,17) != (int) Math.pow(2,16)-1) throw new RuntimeException("P incorrect 17");
+	//	if (P(0,18) != (int) Math.pow(2,17)-1) throw new RuntimeException("P incorrect 18");
+	//	if (P(0,19) != (int) Math.pow(2,18)-1) throw new RuntimeException("P incorrect 19");
+	//	if (P(0,20) != (int) Math.pow(2,19)-1) throw new RuntimeException("P incorrect 20");
+	}
+/* 
 	private int find_num_levels() {
 		return (int) Math.ceil(Math.log10(num_buckets)/Math.log10(2))+1;
 	}
 	
 
 	private int[] find_num_leaves() {
-		/*
-		 * ex : 01234567
-					0           num_levels = 4  | num_buckets = 9
-				  /   \         last_leaves = 2 = 9 - 7 = 9 - 8 + 1
-				 1     2                    = num_buckets - 2^(num_levels-1) + 1
-			    / \   / \
-			   3   4 5   6		nodes_secondLast_level = 4 - 1 = 4 - 2/2 = 2^(num_levels-1) - 2^(num_levels-2)
-			  / \               secondLast_leaves = 4 - 2 = 4 - 2/2 
-			 7   8								  = nodes_secondLast_level - ceiling(last_leaves/2)
-											/!\ ceiling is to not have issue when one leaf does not have siblings /!\
-		 */
+		
+	//	 * ex : 01234567
+	//				0           num_levels = 4  | num_buckets = 9
+	//			  /   \         last_leaves = 2 = 9 - 7 = 9 - 8 + 1
+	//			 1     2                    = num_buckets - 2^(num_levels-1) + 1
+	//		    / \   / \
+	//		   3   4 5   6		nodes_secondLast_level = 4 - 1 = 4 - 2/2 = 2^(num_levels-1) - 2^(num_levels-2)
+	//		  / \               secondLast_leaves = 4 - 2 = 4 - 2/2 
+	//		 7   8								  = nodes_secondLast_level - ceiling(last_leaves/2)
+	//										/!\ ceiling is to not have issue when one leaf does not have siblings /!\
+		 
 		int last_leaves = this.num_buckets -(int) Math.pow(2,this.num_levels-1) + 1 ;
 		int secondLast_leaves = 0;
 		int lowest_leave = 0;
@@ -85,7 +114,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		}
 		return new int[]{last_leaves + secondLast_leaves, lowest_leave};
 	}
-
+ */
 	private int[] init_map(){
 		int[] map = new int[this.num_blocks]; // need to keep record of position for every possible doc
 		for (int i = 0; i < this.num_blocks; i++) {
@@ -104,7 +133,6 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 
 		int a = position_map[blockIndex];
 		position_map[blockIndex] = rand_gen.getRandomLeaf();
-		
 
 		/*
 		 * for l in {0,1,...,L}
@@ -113,6 +141,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		 */
 		for (int level = 1; level < num_levels; level++) {
 			int current = P(a,level);
+			System.out.println(Integer.toString(current));
 			Bucket current_bucket = storage.ReadBucket(current);
 			ArrayList<Block> current_content = current_bucket.getBlocks();
 			if (current_content != null) {
@@ -126,27 +155,35 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 
 		
 		int index_a = -1;
-		for (int i = 0; i < stash.size(); ++i) {
+		stash_size = stash.size();
+		System.out.println(Integer.toString(stash_size));
+		for (int i = 0; i < stash_size; ++i) {
 			Block b = stash.get(i);
-			if (b.index == blockIndex);
+			if (b.index == blockIndex){
 				index_a = i;
-				System.out.println("NEED TO TRANSFORM INTO A COPY LIGN 134");
+				System.out.println("NEED TO TRANSFORM INTO A COPY LIGN 164");
 				res = b.data; // NEED TO TRANSFORM INTO A COPY
+			}
 		}
 		if  (op == Operation.WRITE){
-			if (index_a == -1) {
+			if (index_a == -1) { //the index was not used
 				stash.add(new Block(blockIndex, newdata));
-				System.out.println(""+ Arrays.toString(stash.get(stash.size()-1).data));
+				System.out.println(""+ Arrays.toString(stash.get(stash.size()-1).data)+"######################"+Integer.toString(index_a));
+				System.out.println(Integer.toString(stash.get(stash.size()-1).index));
 			}
 			else {
 				Block b = stash.get(index_a); // you had put this part inside the loop and you were using i
 				for (int i = 0; i < newdata.length; ++i) {
-					b.data[index_a] = newdata[i];
+					b.data[blockIndex] = newdata[i];
 				}
-				System.out.println(Arrays.toString(stash.get(index_a).data) +"----------------"+Integer.toString(index_a));
+				b.index = blockIndex; // set new blockIndex
+				System.out.println(Arrays.toString(stash.get(index_a).data) +"######################"+Integer.toString(index_a));
 			}
 		}
 
+		
+		stash_size = stash.size();
+		System.out.println(Integer.toString(stash_size));
 
 		for (int level = num_levels; level > 0; level--) {
 			ArrayList<Integer> stash_ToWrite = new ArrayList<Integer>();
@@ -159,12 +196,17 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 				if (counter < bucket_size) {
 					Block to_write = b; 
 					if (current == P(position_map[to_write.index],level)) {
+						System.out.println(Arrays.toString(b.data));
+						System.out.println(Arrays.toString(to_write.data));
 						bucket.addBlock(to_write);
 						stash_ToWrite.add(to_write.index);
 						counter++;
 					}
 				}
 			}
+
+			//System.out.println(Arrays.toString(bucket.getBlockByKey(0).data));
+
 
 			// S ←S −S′
 			for (int i = 0; i < stash_ToWrite.size(); i++)
@@ -339,17 +381,17 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		if (leaf > this.num_leaves) {
 			throw new RuntimeException("[INVALID PARAM 'LEAF'] : should be between 0 (INCLUSIVE) and num_leaves (EXCLUSIVE)");
 		}
-		leaf += this.lowest_leave ;
-		int current_level;
-		if (leaf < Math.pow(2,this.num_levels)) {
-			current_level = this.num_levels -1 ;
-		} else {
-			current_level = this.num_levels ;
-		}
+
+		leaf = leaf + (int) Math.pow(2,this.num_levels-1)-1 ;
+		//System.out.println("---------------"+Integer.toString(level)+"  " + Integer.toString(this.num_levels));
+		//should be correct
+		if (level == this.num_levels) return leaf;
+
+		int current_level = this.num_levels;
 
 		int index = leaf;
 		while (current_level > level) {
-			index = (int) Math.floor((current_level-1)/2) ;
+			index = (int) Math.floor((index-1)/2) ;
 			current_level--;
 		}
 
@@ -371,7 +413,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 
 	@Override
 	public int getStashSize() {
-		return this.stash.size();
+		return this.stash_size;
 	}
 
 	@Override
