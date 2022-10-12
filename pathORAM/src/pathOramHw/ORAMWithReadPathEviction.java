@@ -120,6 +120,9 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		for (int i = 0; i < this.num_blocks; i++) {
 			map[i] =  rand_gen.getRandomLeaf();//this.num_leaves-1;
 		}
+		// map[0] = 0;
+		// map[1] = num_leaves-5;
+		// map[2] = num_leaves-2;
 		return map;
 	}
 
@@ -133,6 +136,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 
 		int a = position_map[blockIndex];
 		position_map[blockIndex] = rand_gen.getRandomLeaf();
+		//System.out.println("leaves-2="+Integer.toString(num_leaves-2));
 
 		/*
 		 * for l in {0,1,...,L}
@@ -141,7 +145,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		 */
 		for (int level = 1; level < num_levels; level++) {
 			int current = P(a,level);
-			System.out.println(Integer.toString(current));
+			//System.out.println(Integer.toString(current));
 			Bucket current_bucket = storage.ReadBucket(current);
 			ArrayList<Block> current_content = current_bucket.getBlocks();
 			if (current_content != null) {
@@ -157,20 +161,20 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		
 		int index_a = -1;
 		stash_size = stash.size();
-		System.out.println(Integer.toString(stash_size));
+		//System.out.println(Integer.toString(stash_size));
 		for (int i = 0; i < stash_size; ++i) {
 			Block b = stash.get(i);
 			if (b.index == blockIndex){
 				index_a = i;
-				System.out.println("NEED TO TRANSFORM INTO A COPY LIGN 164");
+				//System.out.println("NEED TO TRANSFORM INTO A COPY LIGN 164");
 				res = b.data; // NEED TO TRANSFORM INTO A COPY
 			}
 		}
 		if  (op == Operation.WRITE){
 			if (index_a == -1) { //the index was not used
 				stash.add(new Block(blockIndex, newdata));
-				System.out.println(""+ Arrays.toString(stash.get(stash.size()-1).data)+"######################"+Integer.toString(index_a));
-				System.out.println(Integer.toString(stash.get(stash.size()-1).index));
+				//System.out.println(""+ Arrays.toString(stash.get(stash.size()-1).data)+"######################"+Integer.toString(index_a));
+				//System.out.println(Integer.toString(stash.get(stash.size()-1).index));
 			}
 			else {
 				Block b = stash.get(index_a); // you had put this part inside the loop and you were using i
@@ -178,13 +182,13 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 					b.data[blockIndex] = newdata[i];
 				}
 				b.index = blockIndex; // set new blockIndex
-				System.out.println(Arrays.toString(stash.get(index_a).data) +"######################"+Integer.toString(index_a));
+				//System.out.println(Arrays.toString(stash.get(index_a).data) +"######################"+Integer.toString(index_a));
 			}
 		}
 
 		
 		stash_size = stash.size();
-		System.out.println(Integer.toString(stash_size));
+		//System.out.println(Integer.toString(stash_size));
 
 		for (int level = num_levels; level > 0; level--) {
 			ArrayList<Integer> stash_ToWrite = new ArrayList<Integer>();
@@ -197,8 +201,9 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 				if (counter < bucket_size) {
 					Block to_write = b; 
 					if (current == P(position_map[to_write.index],level)) {
-						System.out.println(Arrays.toString(b.data));
-						System.out.println(Arrays.toString(to_write.data));
+						System.out.println("P="+Integer.toString(P(position_map[to_write.index],level))+";leaf="+Integer.toString(position_map[to_write.index])+"level="+Integer.toString(level));
+						//System.out.println(Arrays.toString(b.data));
+						//System.out.println(Arrays.toString(to_write.data));
 						bucket.addBlock(to_write);
 						stash_ToWrite.add(to_write.index);
 						counter++;

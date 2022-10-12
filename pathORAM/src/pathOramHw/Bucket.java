@@ -53,7 +53,7 @@ public class Bucket{
 		if (content.size() < max_size_Z){
 			content.add(new Block(new_blk));
 			real_size++;
-			if (new_blk.index != -1) System.out.println(Arrays.toString(content.get(0).data) + " " + Integer.toString(this.returnRealSize()));
+			//if (new_blk.index != -1) System.out.println(Arrays.toString(content.get(0).data) + " " + Integer.toString(this.returnRealSize()));
 		}
 		else System.out.println("addBlock failed");
 	}
@@ -78,7 +78,7 @@ public class Bucket{
 		 ArrayList<Block> b = new ArrayList<Block>(max_size_Z);
 		 int i;
 		 for (i = 0; i < max_size_Z; ++i) {
-			System.out.println(Arrays.toString(content.get(i).data));
+			//System.out.println(Arrays.toString(content.get(i).data));
 			 b.add(new Block(content.get(i)));
 		 }
 		 real_size = ++i;
