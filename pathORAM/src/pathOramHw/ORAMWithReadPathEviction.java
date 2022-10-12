@@ -74,6 +74,7 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		// 		 *	- [execution] need to implement algorithm from slides page 51 to 54
 	
 		byte[] res = new byte[newdata.length] ;
+		//System.out.println(Arrays.toString(res));
 
 		int a = position_map[blockIndex];
 		position_map[blockIndex] = rand_gen.getRandomLeaf();
@@ -91,6 +92,9 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 				for (Block block : current_content) {
 					if (block.index != -1) {
 						stash.add(block);
+						if (block.data[0]==0){
+							throw new RuntimeException("Error, Block should not be returned");
+						}
 					}
 				}
 			}
