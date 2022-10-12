@@ -1,9 +1,9 @@
 package pathOramHw;
 
 import java.util.ArrayList;
-
+import java.util.Arrays;
 /*
- * Name: TODO
+ * Name: Antoine Gansel, August Karlsson
  * NetID: TODO
  */
 
@@ -98,10 +98,14 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 	public byte[] access(Operation op, int blockIndex, byte[] newdata) {
 		// 		 *	- [execution] need to implement algorithm from slides page 51 to 54
 
+		//System.out.println("newdata is " + newdata + "\n");
+
+
 
 		byte[] res = new byte[newdata.length] ;
 		
 		int x =  position_map[blockIndex]; // indice starts from 0, not 1
+		System.out.println("x is " + x + "\n");
 		position_map[blockIndex] = rand_gen.getRandomLeaf();
 
 		// READ PATH, i.e copy every block on every level to stash S
@@ -109,45 +113,92 @@ public class ORAMWithReadPathEviction implements ORAMInterface{
 		for (int level = 0; level < num_levels; ++level)
 		{
 			int pxl = P(x,level);
+			System.out.println("int pxl is " + pxl + "\n");
+			if (pxl >= num_buckets)
+				break;
+			System.out.println("test");
 			Bucket bucket = storage.ReadBucket(pxl);
 			// If bucket is null then it is not in the tree but in the stash
 
-			bucket.getBlocks(); //remove after
-			ArrayList<Block> all_blocks= bucket.getBlocks();
+			System.out.println("what does get blocks give " + bucket.getBlocks().size());
 
+			ArrayList<Block> all_blocks= bucket.getBlocks();
+			System.out.println("all_blocks size are " + all_blocks.size());
 			if (all_blocks != null) {
-				for (Block block : all_blocks){
+				System.out.println("First in all-blocks is "+ Arrays.toString(all_blocks.get(0).data));
+				for (Block block : all_blocks) {
+					//System.out.println("Ready to write to stash, the block index is " + block.index);
 					if (block.index != -1) {
 						stash.add(block);
 					}
+					System.out.println("block are nu"+ Arrays.toString(block.data));
+				}
 			}
-		}
 					
 		}
-		boolean done= false;
-		
-
-		for (int i = 0; i < stash.size() || done ; ++i)
-		{
+		//boolean done= false;
+		int write_to = -10;
+		for (int i = 0; i < stash.size(); ++i) {
 			Block b = stash.get(i);
-			if (b.index == blockIndex) {
-				//UPDATE BLOCK, Read block from stash if OP code is WRITE
-				if (op == Operation.WRITE) {
-					b.data = newdata;
-					stash.add(i, b);
-				}
-				// READ if op == Operation.READ
-				else {  
-					res = b.data;
-				}
-				done = true;
-			}
+			if (b.index == blockIndex);
+				write_to = i;
 		}
+
+
+		if (op == Operation.WRITE) {
+			System.out.println("in WRITE");
+			if (write_to == -10) {
+				Block b = new Block(blockIndex, newdata);
+				stash.add(b);
+			} else {
+				Block b = new Block();
+				for (int i = 0; i < newdata.length; ++i) {
+					b = stash.get(i);
+					b.data[write_to] = newdata[i];
+				}
+				stash.add(write_to, b);
+			}
+		} else {
+			if (write_to == -10) {
+				res = null;
+			} else {
+				for (int i = 0; i < newdata.length; ++i) {
+					res[i] = stash.get(write_to).data[i];
+				}
+			}
+
+		}
+
+
+
+		//DOESN'T WORK AS STASH SIZE IS EMPTY IN THE BEGINNING
+		// for (int i = 0; i < stash.size()  ; ++i) //|| done
+		// {
+		// 	Block b = stash.get(i);
+		// 	System.out.println("IN FOR LOOP");
+		// 	if (b.index == blockIndex) {
+		// 		System.out.println("Ready to write to block\n\n");
+		// 		//UPDATE BLOCK, Read block from stash if OP code is WRITE
+		// 		if (op == Operation.WRITE) {
+		// 			b.data = newdata;
+		// 			stash.add(i, b);
+		// 			System.out.println("stash that's written is now " + stash.get(i));
+		// 		}
+		// 		// READ if op == Operation.READ
+		// 		else {  
+		// 			res = b.data;
+		// 		}
+		// 		break;
+		// 		//done = true;
+		// 	}
+		// }
 
 		for (int level = num_levels; level > 0; level--) {
 			ArrayList<Integer> to_be_written = new ArrayList<Integer>();
 			Bucket bucket = new Bucket();
 			int path_to_level = P(x, level);
+			if (path_to_level >= num_buckets)
+				break;
 			int counter = 0;
 			for (Block b: stash) {
 				if (counter < bucket_size) {
