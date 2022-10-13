@@ -11,6 +11,10 @@ import java.util.Arrays;
 import java.io.FileWriter;
 import pathOramHw.ORAMInterface.Operation;
 import java.io.IOException;
+
+
+
+
 public class TestJob {
 
 
@@ -42,29 +46,32 @@ public class TestJob {
 		    {
 		    	write_bbuf[i] = (byte) 0xa;
 		    }
-            ArrayList<Integer> results = new ArrayList<Integer>();
+            ArrayList<Pair> results = new ArrayList<Pair>();
 
-//		    Do same sample computation: fill an array with numbers, then read it back.
 		    for(int i = 0; i < sample_size; i++){
 		    	oram.access(Operation.READ, i % num_blocks, write_bbuf);
 		    	System.out.println("dbg written block " + i + " has stash size: " + oram.getStashSize());
                 
-				if (i > 3000000) {
-					for (int j = 0; j <= oram.getStashSize(); ++j) { //oram.getStashSize()
+				//if (i > 3000000) { //ONLY COLLECT DATA AFTER 3 MILLION ROUNDS AS WARMUP
+					for (int j = 0; j <= oram.getStashSize(); ++j) {
 						System.out.println("inne i loop");
-						if (j < results.size()){
-                	    	results.add(j, results.get(j) +1);
-						} else {
-							results.add(1);
+
+						try {
+							Pair j_val = results.get(j);
+							j_val.y++;
+							results.add(i, j_val);
+						} catch (Exception e) {
+							results.add(new Pair(j, 1));
 						}
+
                 	}
-				}
-				for (int val = 0; val < results.size(); ++val) {
-					System.out.println("i is: "+val+ " and res is: "+results.get(val));
-				}
-            //    { //starting to record
-            //         file.write("");
-            //     }
+				//}
+				//for (int val = 0; val < results.size(); ++val) {
+					for (int j = 0; j <= oram.getStashSize(); ++j) {
+					System.out.println("i is: "+j+ " and res is: "+results.get(j)); //change back to val
+					results.get(j).printPair(file);
+					}
+				//}
 		    }
             
 
